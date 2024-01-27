@@ -13,6 +13,7 @@ from audio_feature_ext.tool import get_filename,get_subdir
 import pandas as pd
 from audio_feature_ext.audio_fea_ext import AudioFeatureExtraction
 from tqdm import tqdm
+from datetime import datetime, timedelta
 
 
 
@@ -47,7 +48,7 @@ class video_Segmentation:
 
         command = ['ffmpeg', '-ss', str(start_time), '-to', str(end_time), '-i', f'{video_input}', "-vn",
                    '-c:a', 'pcm_s16le','-y',
-                   audio_output, '-loglevel', 'quiet']
+                   audio_output]
 
         subprocess.run(command)
 
@@ -103,8 +104,16 @@ class video_Segmentation:
             os.makedirs(audio_output, exist_ok=True)
             index = str(index).zfill(4)
             text = make_filename_safe(subtitle)
+            start_time = start_time.replace(',', '.')
+            end_time = end_time.replace(',', '.')
 
-
+            # 将时间字符串解析为时间对象
+            time_obj = datetime.strptime(end_time, "%H:%M:%S.%f")
+            # 增加一秒
+            time_obj += timedelta(seconds=1)
+            # 将时间对象转换回字符串格式
+            end_time = time_obj.strftime("%H:%M:%S.%f")[:-3]
+            # 填充
             ss = start_time.zfill(11).ljust(12, '0')[:12]
             ee = end_time.zfill(11).ljust(12, '0')[:12]
 
@@ -146,7 +155,7 @@ class video_Segmentation:
         encoding = detect_encoding(input_srt)
 
         if sub_format == 'srt':
-    
+
             srt_file = pysrt.open(input_srt, encoding=encoding)
             for index, subtitle in enumerate(tqdm(srt_file[:], 'video clip by srt file start')):
                 # 获取开始和结束时间
@@ -172,14 +181,14 @@ class video_Segmentation:
                     # 使用FFmpeg切割视频
                     audio_output = f'{temp_folder}/{filename}/{voice_dir}/{name}.wav'
                     self.ffmpeg_extract_audio(input_video, audio_output, start_time, end_time)
-    
+
         elif sub_format == 'ass':
             # print("this is ass")
             subs = pysubs2.load(input_srt, encoding=encoding)
             if not style:
                 style_lis = [sub.style for sub in subs]
                 most_1 = most_common_element(style_lis)
-                style = most_1[0][0]  
+                style = most_1[0][0]
             new_subs = [sub for sub in subs if sub.style == style]
             for index, subtitle in enumerate(new_subs[:]):
                 # print(index, subtitle)

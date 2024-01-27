@@ -62,8 +62,8 @@ class Video2Subtitles(object):
     def trad2simp(self,text):
         """
         # traditional chinese into simplified chinese
-        :param text: 
-        :return: 
+        :param text:
+        :return:
         """
         simp = HanziConv.toSimplified(text)
         return simp
@@ -84,7 +84,7 @@ class Video2Subtitles(object):
             task="transcribe",
             language=lang,
             verbose=verbose,
-            initial_prompt=None,
+            initial_prompt="以下是普通话的句子.",
             word_timestamps=True,
             no_speech_threshold=0.95,
             fp16=DEVICE
@@ -144,7 +144,7 @@ def run_whisper(args):
     if not os.path.isfile(args.input_video):
         print('input_video is not exist')
         return
-    
+
     # checking if srt_folder is a folder
     if not os.path.isdir(args.srt_folder):
         print('warning srt_folder is not exist')
